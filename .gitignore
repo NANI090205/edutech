@@ -1,0 +1,36 @@
+# IDE / OS / System files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# React Frontend ignores
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Spring Boot Backend ignores
+backend/target/
+backend/.mvn/
+backend/*.jar
+backend/*.war
+backend/*.zip
+backend/*.tar.gz
+backend/help.md
+backend/.project
+backend/.classpath
+backend/.settings/
+backend/bin/
+
+# Temporary and Scratch files
+.gemini/
+scratch/
