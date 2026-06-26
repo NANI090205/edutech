@@ -21,7 +21,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public UserProfileDTO getUserProfile(Long userId) {
+    public UserProfileDTO getUserProfile(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
@@ -29,7 +29,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserProfileDTO updateUserProfile(Long userId, UserProfileUpdateRequest request) {
+    public UserProfileDTO updateUserProfile(String userId, UserProfileUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 

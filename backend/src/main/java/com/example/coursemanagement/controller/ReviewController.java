@@ -23,7 +23,7 @@ public class ReviewController {
     @PostMapping
     public ResponseEntity<ReviewDTO> submitReview(@RequestBody Map<String, Object> payload,
                                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        Long courseId = Long.valueOf(payload.get("courseId").toString());
+        String courseId = payload.get("courseId").toString();
         Integer rating = Integer.valueOf(payload.get("rating").toString());
         String comment = payload.get("comment") != null ? payload.get("comment").toString() : "";
         ReviewDTO review = reviewService.submitReview(userDetails.getId(), courseId, rating, comment);
@@ -31,12 +31,12 @@ public class ReviewController {
     }
 
     @GetMapping("/course/{courseId}")
-    public ResponseEntity<List<ReviewDTO>> getCourseReviews(@PathVariable Long courseId) {
+    public ResponseEntity<List<ReviewDTO>> getCourseReviews(@PathVariable String courseId) {
         return ResponseEntity.ok(reviewService.getCourseReviews(courseId));
     }
 
     @GetMapping("/my/{courseId}")
-    public ResponseEntity<ReviewDTO> getMyReview(@PathVariable Long courseId,
+    public ResponseEntity<ReviewDTO> getMyReview(@PathVariable String courseId,
                                                  @AuthenticationPrincipal UserDetailsImpl userDetails) {
         return ResponseEntity.ok(reviewService.getMyReview(userDetails.getId(), courseId));
     }

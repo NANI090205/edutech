@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LessonDTO {
-    private Long id;
-    private Long courseId;
+    private String id;
+    private String courseId;
     private String title;
     private String description;
     private Integer orderIndex;

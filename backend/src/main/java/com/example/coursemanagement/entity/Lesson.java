@@ -1,13 +1,16 @@
 package com.example.coursemanagement.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Field;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "lessons")
+@Document
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,22 +18,20 @@ import lombok.NoArgsConstructor;
 public class Lesson {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    
+    private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    private String courseId;
 
-    @Column(nullable = false, length = 200)
+    
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    
     private String description;
 
-    @Column(name = "order_index", nullable = false)
+    
     private Integer orderIndex;
 
-    @Column(name = "duration_minutes")
+    
     private Integer durationMinutes;
 }

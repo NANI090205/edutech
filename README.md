@@ -1,6 +1,6 @@
 # Student Course Management System
 
-A production-ready, full-stack Student Course Management System built using Spring Boot (Java), React.js, and MySQL. It features JWT-based role authentication, course catalog management, student registration, enrolments tracking, and admin overview dashboards.
+A production-ready, full-stack Student Course Management System built using Spring Boot (Java), React.js, and MongoDB. It features JWT-based role authentication, course catalog management, student registration, enrolments tracking, and admin overview dashboards.
 
 ---
 
@@ -8,9 +8,8 @@ A production-ready, full-stack Student Course Management System built using Spri
 
 ### Backend
 * **Language & Runtime**: Java 17
-* **Framework**: Spring Boot 3.x, Spring Data JPA, Spring Security (Stateless JWT)
-* **ORM**: Hibernate
-* **Dependency Manager**: Maven
+* **Framework**: Spring Boot 3.x, Spring Data MongoDB, Spring Security (Stateless JWT)
+* **Dependency Manager**: Maven (Wrapper included)
 * **Libraries**: Lombok, Java validation API, JJWT (Json Web Token)
 
 ### Frontend
@@ -20,7 +19,7 @@ A production-ready, full-stack Student Course Management System built using Spri
 * **Routing**: React Router v6 (using Role-based route guard blocks)
 
 ### Database
-* **Engine**: MySQL 8.x
+* **Engine**: MongoDB (Atlas)
 
 ---
 
@@ -53,23 +52,30 @@ f:\resume projects\
 │       ├── App.css         # Theme overrides (slate color variables, glassmorphic styles)
 │       ├── App.jsx         # App router and Route guards
 │       └── index.js        # React DOM mount point
-├── schema.sql              # MySQL database setup and seed dataset script
 └── postman_collection.json # API endpoints testing collection
 ```
 
 ---
 
-## 🗄️ Database Schema & Seed Data
+## 🗄️ Database Collections & Seed Data
 
-The database uses three tables. Check [schema.sql](file:///f:/resume%20projects/schema.sql) for details.
+The database uses MongoDB collections. Data is automatically seeded on startup if the collections are empty.
 
 1. **`users`**:
-   * Columns: `id` (PK), `name`, `email` (Unique), `password` (BCrypt), `role` (`ADMIN`, `STUDENT`), `created_at`
+   * Fields: `id` (String PK), `name`, `email` (Unique), `password` (BCrypt), `role` (`ADMIN`, `STUDENT`), `createdAt`
 2. **`courses`**:
-   * Columns: `id` (PK), `title`, `description` (Text), `duration`, `instructor`, `created_at`
+   * Fields: `id` (String PK), `title`, `description`, `duration`, `instructor`, `createdAt`
 3. **`enrolments`**:
-   * Columns: `id` (PK), `student_id` (FK -> users.id), `course_id` (FK -> courses.id), `enrolled_at`
-   * Unique constraint on `(student_id, course_id)` prevents double registration.
+   * Fields: `id` (String PK), `studentId` (String reference), `courseId` (String reference), `enrolledAt`
+   * Checked in the service layer to prevent duplicate enrolments.
+4. **`lessons`**:
+   * Fields: `id` (String PK), `courseId` (String reference), `title`, `description`, `orderIndex`, `durationMinutes`
+5. **`lessonProgress`**:
+   * Fields: `id` (String PK), `studentId` (String reference), `lessonId` (String reference), `completedAt`
+6. **`reviews`**:
+   * Fields: `id` (String PK), `studentId` (String reference), `courseId` (String reference), `rating`, `comment`, `createdAt`
+7. **`notifications`**:
+   * Fields: `id` (String PK), `userId` (String reference), `message`, `type`, `read`, `createdAt`
 
 ### 👥 Seed Accounts
 All accounts use the password: `password`
@@ -83,39 +89,36 @@ All accounts use the password: `password`
 
 ## 🛠️ Setup & Running Instructions
 
-### Phase 1: Database Setup
-1. Log in to your local MySQL server.
-2. Run the SQL script from [schema.sql](file:///f:/resume%20projects/schema.sql):
-   ```bash
-   mysql -u root -p < schema.sql
-   ```
-   *Note: This creates the database `student_course_mgmt`, sets up the tables, and seeds the sample data.*
+The project uses a pure MongoDB database (configured for MongoDB Atlas) and includes a Maven Wrapper so that no global Maven installation is required.
 
-### Phase 2: Backend Setup
-1. Navigate to the `backend` folder.
-2. Open `src/main/resources/application.properties` and verify your MySQL connection settings:
-   ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/student_course_mgmt?...
-   spring.datasource.username=YOUR_MYSQL_USERNAME
-   spring.datasource.password=YOUR_MYSQL_PASSWORD
-   ```
-3. Run the Spring Boot application using Maven:
+### Step 1: Environment Configuration
+1. Copy `.env.example` in the root folder to `.env`:
    ```bash
-   mvn clean spring-boot:run
+   cp .env.example .env
    ```
-   *The backend server will launch on `http://localhost:8080`.*
+2. Configure the variables inside `.env` with your MongoDB Atlas connection string (`MONGODB_URI`) and JWT configurations.
 
-### Phase 3: Frontend Setup
-1. Navigate to the `frontend` folder.
-2. Install npm packages:
-   ```bash
-   npm install
-   ```
-3. Launch the development server:
-   ```bash
-   npm start
-   ```
-   *The React application will open automatically in your browser at `http://localhost:3000`.*
+### Step 2: One-Command Startup
+* **Windows**: Double-click [start.bat](file:///c:/Users/jagap/Downloads/edutech/start.bat) or run it from the command line:
+  ```cmd
+  start.bat
+  ```
+* **Linux / macOS**: Make the script executable and run it:
+  ```bash
+  chmod +x start.sh stop.sh
+  ./start.sh
+  ```
+This script will check dependencies, install frontend packages, run the Spring Boot backend via the Maven Wrapper, verify connection readiness, and start the React frontend (opening your browser automatically).
+
+### Step 3: Shutdown
+* **Windows**: Run [stop.bat](file:///c:/Users/jagap/Downloads/edutech/stop.bat) to terminate backend and frontend servers:
+  ```cmd
+  stop.bat
+  ```
+* **Linux / macOS**: Run `./stop.sh`:
+  ```bash
+  ./stop.sh
+  ```
 
 ---
 

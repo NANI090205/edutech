@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CourseDTO {
 
-    private Long id;
+    private String id;
 
     @NotBlank(message = "Title is required")
     @Size(max = 150, message = "Title cannot exceed 150 characters")

@@ -1,16 +1,17 @@
 package com.example.coursemanagement.repository;
 
 import com.example.coursemanagement.entity.LessonProgress;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface LessonProgressRepository extends JpaRepository<LessonProgress, Long> {
-    List<LessonProgress> findByStudentId(Long studentId);
-    boolean existsByStudentIdAndLessonId(Long studentId, Long lessonId);
-    Optional<LessonProgress> findByStudentIdAndLessonId(Long studentId, Long lessonId);
-    long countByStudentIdAndLessonCourseId(Long studentId, Long courseId);
+public interface LessonProgressRepository extends MongoRepository<LessonProgress, String> {
+    List<LessonProgress> findByStudentId(String studentId);
+    boolean existsByStudentIdAndLessonId(String studentId, String lessonId);
+    Optional<LessonProgress> findByStudentIdAndLessonId(String studentId, String lessonId);
+    void deleteByLessonId(String lessonId);
+    void deleteByLessonIdIn(List<String> lessonIds);
 }

@@ -1,6 +1,7 @@
 package com.example.coursemanagement.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,8 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "notifications")
+@Document
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,28 +21,17 @@ public class Notification {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private String userId;
 
-    @Column(nullable = false, length = 500)
     private String message;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", length = 30)
     private NotificationType type;
 
-    @Column(name = "is_read", nullable = false)
+    @Builder.Default
     private boolean read = false;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

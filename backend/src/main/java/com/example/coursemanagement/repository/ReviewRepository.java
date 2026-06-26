@@ -1,23 +1,24 @@
 package com.example.coursemanagement.repository;
 
 import com.example.coursemanagement.entity.Review;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ReviewRepository extends JpaRepository<Review, Long> {
-    List<Review> findByCourseIdOrderByCreatedAtDesc(Long courseId);
-    Optional<Review> findByStudentIdAndCourseId(Long studentId, Long courseId);
-    boolean existsByStudentIdAndCourseId(Long studentId, Long courseId);
+public interface ReviewRepository extends MongoRepository<Review, String> {
+    List<Review> findByCourseIdOrderByCreatedAtDesc(String courseId);
+    Optional<Review> findByStudentIdAndCourseId(String studentId, String courseId);
+    boolean existsByStudentIdAndCourseId(String studentId, String courseId);
 
-    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.course.id = :courseId")
-    Double findAverageRatingByCourseId(@Param("courseId") Long courseId);
+    @org.springframework.data.mongodb.repository.Aggregation(pipeline = {
+        "{ $match: { 'courseId': ?0 } }",
+        "{ $group: { _id: null, average: { $avg: '$rating' } } }"
+    })
+    Double findAverageRatingByCourseId(String courseId);
 
-    @Query("SELECT COUNT(r) FROM Review r WHERE r.course.id = :courseId")
-    Long countByCourseId(@Param("courseId") Long courseId);
+    long countByCourseId(String courseId);
+    void deleteByCourseId(String courseId);
 }

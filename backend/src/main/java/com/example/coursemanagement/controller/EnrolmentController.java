@@ -24,9 +24,9 @@ public class EnrolmentController {
     }
 
     @PostMapping("/enrol")
-    public ResponseEntity<EnrolmentDTO> enrol(@RequestBody Map<String, Long> payload,
+    public ResponseEntity<EnrolmentDTO> enrol(@RequestBody Map<String, String> payload,
                                              @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        Long courseId = payload.get("courseId");
+        String courseId = payload.get("courseId");
         if (courseId == null) {
             throw new BadRequestException("Course ID is required in the body");
         }
@@ -35,7 +35,7 @@ public class EnrolmentController {
     }
 
     @DeleteMapping("/drop/{courseId}")
-    public ResponseEntity<Map<String, String>> drop(@PathVariable Long courseId,
+    public ResponseEntity<Map<String, String>> drop(@PathVariable String courseId,
                                                    @AuthenticationPrincipal UserDetailsImpl userDetails) {
         enrolmentService.drop(userDetails.getId(), courseId);
         Map<String, String> response = new HashMap<>();

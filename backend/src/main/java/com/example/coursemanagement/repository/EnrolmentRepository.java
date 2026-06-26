@@ -1,27 +1,30 @@
 package com.example.coursemanagement.repository;
 
 import com.example.coursemanagement.entity.Enrolment;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface EnrolmentRepository extends JpaRepository<Enrolment, Long> {
-    List<Enrolment> findByStudentId(Long studentId);
-    boolean existsByStudentIdAndCourseId(Long studentId, Long courseId);
-    Optional<Enrolment> findByStudentIdAndCourseId(Long studentId, Long courseId);
-    long countByCourseId(Long courseId);
+public interface EnrolmentRepository extends MongoRepository<Enrolment, String> {
+    List<Enrolment> findByStudentId(String studentId);
+    boolean existsByStudentIdAndCourseId(String studentId, String courseId);
+    Optional<Enrolment> findByStudentIdAndCourseId(String studentId, String courseId);
+    long countByCourseId(String courseId);
+    void deleteByCourseId(String courseId);
 
-    @Query("SELECT MONTH(e.enrolledAt) as month, YEAR(e.enrolledAt) as year, COUNT(e) as count " +
-           "FROM Enrolment e GROUP BY YEAR(e.enrolledAt), MONTH(e.enrolledAt) ORDER BY YEAR(e.enrolledAt), MONTH(e.enrolledAt)")
-    List<Object[]> findMonthlyEnrolmentCounts();
+    @org.springframework.data.mongodb.repository.Aggregation(pipeline = {
+        "{ $group: { _id: { year: { $year: '$enrolledAt' }, month: { $month: '$enrolledAt' } }, count: { $sum: 1 } } }",
+        "{ $sort: { '_id.year': 1, '_id.month': 1 } }"
+    })
+    List<org.bson.Document> findMonthlyEnrolmentCounts();
 
-    @Query("SELECT e.course.id, e.course.title, COUNT(e) as enrollCount " +
-           "FROM Enrolment e GROUP BY e.course.id, e.course.title ORDER BY enrollCount DESC")
-    List<Object[]> findPopularCourses(Pageable pageable);
+    @org.springframework.data.mongodb.repository.Aggregation(pipeline = {
+        "{ $group: { _id: '$courseId', enrollCount: { $sum: 1 } } }",
+        "{ $sort: { enrollCount: -1 } }"
+    })
+    List<org.bson.Document> findPopularCourses(Pageable pageable);
 }

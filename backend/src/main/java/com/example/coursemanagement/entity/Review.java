@@ -1,6 +1,7 @@
 package com.example.coursemanagement.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,10 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "reviews", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"student_id", "course_id"})
-})
+@Document
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,28 +17,16 @@ import java.time.LocalDateTime;
 public class Review {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "student_id", nullable = false)
-    private User student;
+    private String studentId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    private String courseId;
 
-    @Column(nullable = false)
     private Integer rating; // 1-5
 
-    @Column(columnDefinition = "TEXT")
     private String comment;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

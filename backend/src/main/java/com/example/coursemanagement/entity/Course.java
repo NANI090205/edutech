@@ -1,6 +1,7 @@
 package com.example.coursemanagement.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,8 +10,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "courses")
+@Document
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,41 +18,26 @@ import java.time.LocalDateTime;
 public class Course {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false, length = 150)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false, length = 50)
     private String duration;
 
-    @Column(nullable = false, length = 100)
     private String instructor;
 
-    @Column(name = "category", length = 100)
     private String category;
 
-    @Column(name = "tags", length = 500)
     private String tags;
 
-    @Column(name = "start_date")
     private LocalDate startDate;
 
-    @Column(name = "end_date")
     private LocalDate endDate;
 
-    @Column(name = "deadline")
     private LocalDate deadline;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProgressDTO {
-    private Long courseId;
+    private String courseId;
     private String courseTitle;
     private int totalLessons;
     private int completedLessons;

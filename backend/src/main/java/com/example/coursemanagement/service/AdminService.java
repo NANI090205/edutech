@@ -50,7 +50,8 @@ public class AdminService {
         return students.stream().map(student -> {
             List<CourseDTO> enrolledCourses = enrolmentRepository.findByStudentId(student.getId()).stream()
                     .map(enrolment -> {
-                        Course course = enrolment.getCourse();
+                        Course course = courseRepository.findById(enrolment.getCourseId()).orElse(null);
+                        if (course == null) return null;
                         return CourseDTO.builder()
                                 .id(course.getId())
                                 .title(course.getTitle())
@@ -60,6 +61,7 @@ public class AdminService {
                                 .createdAt(course.getCreatedAt())
                                 .build();
                     })
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
             return StudentDTO.builder()
@@ -79,26 +81,34 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public Map<String, Object> getEnrolmentAnalytics() {
-        List<Object[]> monthly = enrolmentRepository.findMonthlyEnrolmentCounts();
+        List<org.bson.Document> monthly = enrolmentRepository.findMonthlyEnrolmentCounts();
         List<Map<String, Object>> monthlyData = new ArrayList<>();
-        for (Object[] row : monthly) {
-            Map<String, Object> entry = new HashMap<>();
-            int month = ((Number) row[0]).intValue();
-            int year = ((Number) row[1]).intValue();
-            long count = ((Number) row[2]).longValue();
+        for (org.bson.Document doc : monthly) {
+            org.bson.Document idDoc = (org.bson.Document) doc.get("_id");
+            if (idDoc == null) continue;
+            int month = idDoc.getInteger("month");
+            int year = idDoc.getInteger("year");
+            long count = ((Number) doc.get("count")).longValue();
             String label = Month.of(month).getDisplayName(TextStyle.SHORT, Locale.ENGLISH) + " " + year;
+            Map<String, Object> entry = new HashMap<>();
             entry.put("label", label);
             entry.put("count", count);
             monthlyData.add(entry);
         }
 
-        List<Object[]> popular = enrolmentRepository.findPopularCourses(PageRequest.of(0, 5));
+        List<org.bson.Document> popular = enrolmentRepository.findPopularCourses(PageRequest.of(0, 5));
         List<Map<String, Object>> popularData = new ArrayList<>();
-        for (Object[] row : popular) {
+        for (org.bson.Document doc : popular) {
+            String courseId = doc.getString("_id");
+            if (courseId == null) continue;
+            Course course = courseRepository.findById(courseId).orElse(null);
+            String courseTitle = (course != null) ? course.getTitle() : "Unknown Course";
+            long enrollCount = ((Number) doc.get("enrollCount")).longValue();
+
             Map<String, Object> entry = new HashMap<>();
-            entry.put("courseId", row[0]);
-            entry.put("courseTitle", row[1]);
-            entry.put("enrollCount", ((Number) row[2]).longValue());
+            entry.put("courseId", courseId);
+            entry.put("courseTitle", courseTitle);
+            entry.put("enrollCount", enrollCount);
             popularData.add(entry);
         }
 
@@ -130,12 +140,16 @@ public class AdminService {
         StringBuilder sb = new StringBuilder();
         sb.append("EnrolmentID,StudentName,StudentEmail,CourseTitle,Instructor,EnrolledAt\n");
         enrolmentRepository.findAll().forEach(e -> {
-            sb.append(csvEscape(String.valueOf(e.getId()))).append(",")
-              .append(csvEscape(e.getStudent().getName())).append(",")
-              .append(csvEscape(e.getStudent().getEmail())).append(",")
-              .append(csvEscape(e.getCourse().getTitle())).append(",")
-              .append(csvEscape(e.getCourse().getInstructor())).append(",")
-              .append(csvEscape(e.getEnrolledAt() != null ? e.getEnrolledAt().toLocalDate().toString() : "")).append("\n");
+            User student = userRepository.findById(e.getStudentId()).orElse(null);
+            Course course = courseRepository.findById(e.getCourseId()).orElse(null);
+            if (student != null && course != null) {
+                sb.append(csvEscape(String.valueOf(e.getId()))).append(",")
+                  .append(csvEscape(student.getName())).append(",")
+                  .append(csvEscape(student.getEmail())).append(",")
+                  .append(csvEscape(course.getTitle())).append(",")
+                  .append(csvEscape(course.getInstructor())).append(",")
+                  .append(csvEscape(e.getEnrolledAt() != null ? e.getEnrolledAt().toLocalDate().toString() : "")).append("\n");
+            }
         });
         return sb.toString();
     }

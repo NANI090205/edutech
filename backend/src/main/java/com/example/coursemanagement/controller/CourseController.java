@@ -54,7 +54,7 @@ public class CourseController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CourseDTO> getCourseById(@PathVariable Long id) {
+    public ResponseEntity<CourseDTO> getCourseById(@PathVariable String id) {
         return ResponseEntity.ok(courseService.getCourseById(id));
     }
 
@@ -65,13 +65,13 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CourseDTO> updateCourse(@PathVariable Long id, @Valid @RequestBody CourseDTO courseDTO) {
+    public ResponseEntity<CourseDTO> updateCourse(@PathVariable String id, @Valid @RequestBody CourseDTO courseDTO) {
         CourseDTO updated = courseService.updateCourse(id, courseDTO);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteCourse(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteCourse(@PathVariable String id) {
         courseService.deleteCourse(id);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Course deleted successfully");

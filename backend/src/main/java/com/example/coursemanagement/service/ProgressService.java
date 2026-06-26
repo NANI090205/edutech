@@ -36,7 +36,7 @@ public class ProgressService {
     }
 
     @Transactional(readOnly = true)
-    public ProgressDTO getCourseProgress(Long studentId, Long courseId) {
+    public ProgressDTO getCourseProgress(String studentId, String courseId) {
         var course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found: " + courseId));
 
@@ -71,7 +71,7 @@ public class ProgressService {
     }
 
     @Transactional
-    public void markLessonComplete(Long studentId, Long lessonId) {
+    public void markLessonComplete(String studentId, String lessonId) {
         if (lessonProgressRepository.existsByStudentIdAndLessonId(studentId, lessonId)) {
             throw new BadRequestException("Lesson already marked as complete");
         }
@@ -81,20 +81,20 @@ public class ProgressService {
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + lessonId));
 
         LessonProgress progress = LessonProgress.builder()
-                .student(student)
-                .lesson(lesson)
+                .studentId(studentId)
+                .lessonId(lessonId)
                 .build();
         lessonProgressRepository.save(progress);
     }
 
     @Transactional
-    public void markLessonIncomplete(Long studentId, Long lessonId) {
+    public void markLessonIncomplete(String studentId, String lessonId) {
         lessonProgressRepository.findByStudentIdAndLessonId(studentId, lessonId)
                 .ifPresent(lessonProgressRepository::delete);
     }
 
     @Transactional(readOnly = true)
-    public List<LessonDTO> getLessonsForCourse(Long courseId) {
+    public List<LessonDTO> getLessonsForCourse(String courseId) {
         return lessonRepository.findByCourseIdOrderByOrderIndex(courseId).stream()
                 .map(lesson -> LessonDTO.builder()
                         .id(lesson.getId())
@@ -109,13 +109,13 @@ public class ProgressService {
     }
 
     @Transactional
-    public LessonDTO addLesson(Long courseId, LessonDTO dto) {
+    public LessonDTO addLesson(String courseId, LessonDTO dto) {
         var course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found: " + courseId));
 
         long count = lessonRepository.countByCourseId(courseId);
         Lesson lesson = Lesson.builder()
-                .course(course)
+                .courseId(courseId)
                 .title(dto.getTitle())
                 .description(dto.getDescription())
                 .orderIndex(dto.getOrderIndex() != null ? dto.getOrderIndex() : (int)(count + 1))
@@ -135,7 +135,8 @@ public class ProgressService {
     }
 
     @Transactional
-    public void deleteLesson(Long lessonId) {
+    public void deleteLesson(String lessonId) {
+        lessonProgressRepository.deleteByLessonId(lessonId);
         lessonRepository.deleteById(lessonId);
     }
 }

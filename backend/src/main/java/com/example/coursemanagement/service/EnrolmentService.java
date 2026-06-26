@@ -34,7 +34,7 @@ public class EnrolmentService {
     }
 
     @Transactional
-    public EnrolmentDTO enrol(Long studentId, Long courseId) {
+    public EnrolmentDTO enrol(String studentId, String courseId) {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
 
@@ -46,8 +46,8 @@ public class EnrolmentService {
         }
 
         Enrolment enrolment = Enrolment.builder()
-                .student(student)
-                .course(course)
+                .studentId(studentId)
+                .courseId(courseId)
                 .build();
 
         Enrolment savedEnrolment = enrolmentRepository.save(enrolment);
@@ -59,18 +59,18 @@ public class EnrolmentService {
                 "🎓 " + student.getName() + " enrolled in \"" + course.getTitle() + "\"",
                 Notification.NotificationType.NEW_ENROLLMENT));
 
-        return convertToDTO(savedEnrolment);
+        return convertToDTO(savedEnrolment, student, course);
     }
 
     @Transactional
-    public void drop(Long studentId, Long courseId) {
+    public void drop(String studentId, String courseId) {
         Enrolment enrolment = enrolmentRepository.findByStudentIdAndCourseId(studentId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Enrolment not found for student " + studentId + " and course " + courseId));
 
         enrolmentRepository.delete(enrolment);
     }
 
-    public List<EnrolmentDTO> getStudentEnrolments(Long studentId) {
+    public List<EnrolmentDTO> getStudentEnrolments(String studentId) {
         if (!userRepository.existsById(studentId)) {
             throw new ResourceNotFoundException("Student not found with id: " + studentId);
         }
@@ -81,14 +81,20 @@ public class EnrolmentService {
     }
 
     private EnrolmentDTO convertToDTO(Enrolment enrolment) {
+        User student = userRepository.findById(enrolment.getStudentId()).orElse(null);
+        Course course = courseRepository.findById(enrolment.getCourseId()).orElse(null);
+        return convertToDTO(enrolment, student, course);
+    }
+
+    private EnrolmentDTO convertToDTO(Enrolment enrolment, User student, Course course) {
         return EnrolmentDTO.builder()
                 .id(enrolment.getId())
-                .studentId(enrolment.getStudent().getId())
-                .studentName(enrolment.getStudent().getName())
-                .studentEmail(enrolment.getStudent().getEmail())
-                .courseId(enrolment.getCourse().getId())
-                .courseTitle(enrolment.getCourse().getTitle())
-                .courseInstructor(enrolment.getCourse().getInstructor())
+                .studentId(student != null ? student.getId() : null)
+                .studentName(student != null ? student.getName() : null)
+                .studentEmail(student != null ? student.getEmail() : null)
+                .courseId(course != null ? course.getId() : null)
+                .courseTitle(course != null ? course.getTitle() : null)
+                .courseInstructor(course != null ? course.getInstructor() : null)
                 .enrolledAt(enrolment.getEnrolledAt())
                 .build();
     }

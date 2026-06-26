@@ -12,11 +12,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EnrolmentDTO {
-    private Long id;
-    private Long studentId;
+    private String id;
+    private String studentId;
     private String studentName;
     private String studentEmail;
-    private Long courseId;
+    private String courseId;
     private String courseTitle;
     private String courseInstructor;
     private LocalDateTime enrolledAt;

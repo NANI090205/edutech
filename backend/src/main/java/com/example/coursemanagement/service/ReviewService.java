@@ -33,7 +33,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewDTO submitReview(Long studentId, Long courseId, Integer rating, String comment) {
+    public ReviewDTO submitReview(String studentId, String courseId, Integer rating, String comment) {
         if (!enrolmentRepository.existsByStudentIdAndCourseId(studentId, courseId)) {
             throw new BadRequestException("You must be enrolled in this course to leave a review");
         }
@@ -55,8 +55,8 @@ public class ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found: " + courseId));
 
         Review review = Review.builder()
-                .student(student)
-                .course(course)
+                .studentId(studentId)
+                .courseId(courseId)
                 .rating(rating)
                 .comment(comment)
                 .build();
@@ -65,27 +65,29 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReviewDTO> getCourseReviews(Long courseId) {
+    public List<ReviewDTO> getCourseReviews(String courseId) {
         return reviewRepository.findByCourseIdOrderByCreatedAtDesc(courseId).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public ReviewDTO getMyReview(Long studentId, Long courseId) {
+    public ReviewDTO getMyReview(String studentId, String courseId) {
         return reviewRepository.findByStudentIdAndCourseId(studentId, courseId)
                 .map(this::toDTO)
                 .orElse(null);
     }
 
     private ReviewDTO toDTO(Review review) {
+        User student = userRepository.findById(review.getStudentId()).orElse(null);
+        Course course = courseRepository.findById(review.getCourseId()).orElse(null);
         return ReviewDTO.builder()
                 .id(review.getId())
-                .studentId(review.getStudent().getId())
-                .studentName(review.getStudent().getName())
-                .studentProfileImage(review.getStudent().getProfileImage())
-                .courseId(review.getCourse().getId())
-                .courseTitle(review.getCourse().getTitle())
+                .studentId(student != null ? student.getId() : null)
+                .studentName(student != null ? student.getName() : null)
+                .studentProfileImage(student != null ? student.getProfileImage() : null)
+                .courseId(course != null ? course.getId() : null)
+                .courseTitle(course != null ? course.getTitle() : null)
                 .rating(review.getRating())
                 .comment(review.getComment())
                 .createdAt(review.getCreatedAt())

@@ -2,12 +2,14 @@ package com.example.coursemanagement.service;
 
 import com.example.coursemanagement.dto.CourseDTO;
 import com.example.coursemanagement.entity.Course;
+import com.example.coursemanagement.entity.Lesson;
 import com.example.coursemanagement.entity.Notification;
 import com.example.coursemanagement.entity.Role;
 import com.example.coursemanagement.entity.User;
 import com.example.coursemanagement.exception.ResourceNotFoundException;
 import com.example.coursemanagement.repository.CourseRepository;
 import com.example.coursemanagement.repository.EnrolmentRepository;
+import com.example.coursemanagement.repository.LessonProgressRepository;
 import com.example.coursemanagement.repository.LessonRepository;
 import com.example.coursemanagement.repository.ReviewRepository;
 import com.example.coursemanagement.repository.UserRepository;
@@ -27,15 +29,20 @@ public class CourseService {
     private final LessonRepository lessonRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final EnrolmentRepository enrolmentRepository;
+    private final LessonProgressRepository lessonProgressRepository;
 
     public CourseService(CourseRepository courseRepository, ReviewRepository reviewRepository,
                          LessonRepository lessonRepository, UserRepository userRepository,
-                         NotificationService notificationService) {
+                         NotificationService notificationService, EnrolmentRepository enrolmentRepository,
+                         LessonProgressRepository lessonProgressRepository) {
         this.courseRepository = courseRepository;
         this.reviewRepository = reviewRepository;
         this.lessonRepository = lessonRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.enrolmentRepository = enrolmentRepository;
+        this.lessonProgressRepository = lessonProgressRepository;
     }
 
     public List<CourseDTO> getAllCourses() {
@@ -45,9 +52,9 @@ public class CourseService {
     }
 
     public Page<CourseDTO> searchCourses(String search, String category, String instructor, Pageable pageable) {
-        String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
-        String categoryParam = (category != null && !category.isBlank()) ? category.trim() : null;
-        String instructorParam = (instructor != null && !instructor.isBlank()) ? instructor.trim() : null;
+        String searchParam = (search != null && !search.isBlank()) ? search.trim() : "";
+        String categoryParam = (category != null && !category.isBlank()) ? category.trim() : "";
+        String instructorParam = (instructor != null && !instructor.isBlank()) ? instructor.trim() : "";
         return courseRepository.searchCourses(searchParam, categoryParam, instructorParam, pageable)
                 .map(this::convertToDTO);
     }
@@ -59,7 +66,7 @@ public class CourseService {
                 .collect(Collectors.toList());
     }
 
-    public CourseDTO getCourseById(Long id) {
+    public CourseDTO getCourseById(String id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + id));
         return convertToDTO(course);
@@ -91,7 +98,7 @@ public class CourseService {
     }
 
     @Transactional
-    public CourseDTO updateCourse(Long id, CourseDTO courseDTO) {
+    public CourseDTO updateCourse(String id, CourseDTO courseDTO) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + id));
 
@@ -110,10 +117,20 @@ public class CourseService {
     }
 
     @Transactional
-    public void deleteCourse(Long id) {
+    public void deleteCourse(String id) {
         if (!courseRepository.existsById(id)) {
             throw new ResourceNotFoundException("Course not found with id: " + id);
         }
+        // Cascade delete associated documents
+        List<Lesson> lessons = lessonRepository.findByCourseIdOrderByOrderIndex(id);
+        if (!lessons.isEmpty()) {
+            List<String> lessonIds = lessons.stream().map(Lesson::getId).collect(Collectors.toList());
+            lessonProgressRepository.deleteByLessonIdIn(lessonIds);
+        }
+        lessonRepository.deleteByCourseId(id);
+        enrolmentRepository.deleteByCourseId(id);
+        reviewRepository.deleteByCourseId(id);
+
         courseRepository.deleteById(id);
     }
 

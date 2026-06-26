@@ -1,6 +1,7 @@
 package com.example.coursemanagement.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,10 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "lesson_progress", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"student_id", "lesson_id"})
-})
+@Document
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,22 +17,12 @@ import java.time.LocalDateTime;
 public class LessonProgress {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "student_id", nullable = false)
-    private User student;
+    private String studentId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "lesson_id", nullable = false)
-    private Lesson lesson;
+    private String lessonId;
 
-    @Column(name = "completed_at", nullable = false, updatable = false)
-    private LocalDateTime completedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.completedAt = LocalDateTime.now();
-    }
+    @Builder.Default
+    private LocalDateTime completedAt = LocalDateTime.now();
 }
